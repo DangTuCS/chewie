@@ -510,7 +510,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
           right: 6.0,
         ),
         child: Icon(
-          CupertinoIcons.gobackward_15,
+          CupertinoIcons.gobackward_10,
           color: iconColor,
           size: 18.0,
         ),
@@ -532,7 +532,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
           right: 8.0,
         ),
         child: Icon(
-          CupertinoIcons.goforward_15,
+          CupertinoIcons.goforward_10,
           color: iconColor,
           size: 18.0,
         ),
@@ -758,7 +758,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
     _cancelAndRestartTimer();
     final beginning = Duration.zero.inMilliseconds;
     final skip =
-        (_latestValue.position - const Duration(seconds: 15)).inMilliseconds;
+        (_latestValue.position - const Duration(seconds: 10)).inMilliseconds;
     await controller.seekTo(Duration(milliseconds: math.max(skip, beginning)));
     // Restoring the video speed to selected speed
     // A delay of 1 second is added to ensure a smooth transition of speed after reversing the video as reversing is an asynchronous function
@@ -771,7 +771,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
     _cancelAndRestartTimer();
     final end = _latestValue.duration.inMilliseconds;
     final skip =
-        (_latestValue.position + const Duration(seconds: 15)).inMilliseconds;
+        (_latestValue.position + const Duration(seconds: 10)).inMilliseconds;
     await controller.seekTo(Duration(milliseconds: math.min(skip, end)));
     // Restoring the video speed to selected speed
     // A delay of 1 second is added to ensure a smooth transition of speed after forwarding the video as forwaring is an asynchronous function
