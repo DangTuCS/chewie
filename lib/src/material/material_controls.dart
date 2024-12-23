@@ -12,6 +12,7 @@ import 'package:chewie/src/models/option_item.dart';
 import 'package:chewie/src/models/subtitle_model.dart';
 import 'package:chewie/src/notifiers/index.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
@@ -206,7 +207,7 @@ class _MaterialControlsState extends State<MaterialControls>
           }
         },
         icon: const Icon(
-          Icons.more_vert,
+          FontAwesomeIcons.download,
           color: Colors.white,
         ),
       ),

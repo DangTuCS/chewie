@@ -14,6 +14,7 @@ import 'package:chewie/src/models/subtitle_model.dart';
 import 'package:chewie/src/notifiers/index.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
@@ -194,7 +195,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
         padding: const EdgeInsets.only(left: 4.0, right: 8.0),
         margin: const EdgeInsets.only(right: 6.0),
         child: Icon(
-          Icons.more_vert,
+          FontAwesomeIcons.download,
           color: iconColor,
           size: 18,
         ),
