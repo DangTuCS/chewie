@@ -41,6 +41,8 @@ class Chewie extends StatefulWidget {
 
 class ChewieState extends State<Chewie> {
   bool _isFullScreen = false;
+  bool _wasPlaying = false;
+  Duration? _positionBeforeFullScreen;
 
   bool get isControllerFullScreen => widget.controller.isFullScreen;
   late PlayerNotifier notifier;
@@ -71,15 +73,39 @@ class ChewieState extends State<Chewie> {
   }
 
   Future<void> listener() async {
-    if (isControllerFullScreen && !_isFullScreen) {
-      _isFullScreen = isControllerFullScreen;
-      await _pushFullScreenWidget(context);
-    } else if (_isFullScreen) {
-      Navigator.of(
-        context,
-        rootNavigator: widget.controller.useRootNavigator,
-      ).pop();
-      _isFullScreen = false;
+    // If using custom fullscreen handler
+    if (widget.controller.customFullscreenHandler != null) {
+      // Handle entering fullscreen
+      if (isControllerFullScreen && !_isFullScreen) {
+        _wasPlaying = widget.controller.videoPlayerController.value.isPlaying;
+        _positionBeforeFullScreen = widget.controller.videoPlayerController.value.position;
+        _isFullScreen = true;
+        // The actual navigation is handled by the custom handler
+        await widget.controller.customFullscreenHandler!(
+          _positionBeforeFullScreen!,
+          widget.controller.videoPlayerController.dataSource,
+        );
+      }
+      // Handle exiting fullscreen
+      else if (!isControllerFullScreen && _isFullScreen) {
+        _isFullScreen = false;
+        // Any additional cleanup if needed
+      }
+    }
+    // Default implementation for standard fullscreen
+    else {
+      if (isControllerFullScreen && !_isFullScreen) {
+        _wasPlaying = widget.controller.videoPlayerController.value.isPlaying;
+        _positionBeforeFullScreen = widget.controller.videoPlayerController.value.position;
+        _isFullScreen = isControllerFullScreen;
+        await _pushFullScreenWidget(context);
+      } else if (_isFullScreen) {
+        Navigator.of(
+          context,
+          rootNavigator: widget.controller.useRootNavigator,
+        ).pop();
+        _isFullScreen = false;
+      }
     }
   }
 
@@ -95,10 +121,10 @@ class ChewieState extends State<Chewie> {
   }
 
   Widget _buildFullScreenVideo(
-    BuildContext context,
-    Animation<double> animation,
-    ChewieControllerProvider controllerProvider,
-  ) {
+      BuildContext context,
+      Animation<double> animation,
+      ChewieControllerProvider controllerProvider,
+      ) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -110,11 +136,11 @@ class ChewieState extends State<Chewie> {
   }
 
   AnimatedWidget _defaultRoutePageBuilder(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    ChewieControllerProvider controllerProvider,
-  ) {
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondaryAnimation,
+      ChewieControllerProvider controllerProvider,
+      ) {
     return AnimatedBuilder(
       animation: animation,
       builder: (BuildContext context, Widget? child) {
@@ -124,10 +150,10 @@ class ChewieState extends State<Chewie> {
   }
 
   Widget _fullScreenRoutePageBuilder(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
+      BuildContext context,
+      Animation<double> animation,
+      Animation<double> secondaryAnimation,
+      ) {
     final controllerProvider = ChewieControllerProvider(
       controller: widget.controller,
       child: ChangeNotifierProvider<PlayerNotifier>.value(
@@ -223,7 +249,6 @@ class ChewieState extends State<Chewie> {
           DeviceOrientation.landscapeRight,
         ]);
       }
-
       /// Video h > w means we force portrait
       else if (isPortraitVideo) {
         SystemChrome.setPreferredOrientations([
@@ -231,7 +256,6 @@ class ChewieState extends State<Chewie> {
           DeviceOrientation.portraitDown,
         ]);
       }
-
       /// Otherwise if h == w (square video)
       else {
         SystemChrome.setPreferredOrientations(DeviceOrientation.values);
@@ -264,6 +288,7 @@ class ChewieState extends State<Chewie> {
 /// `VideoPlayerController`.
 class ChewieController extends ChangeNotifier {
   ChewieController({
+    this.customFullscreenHandler,
     required this.videoPlayerController,
     this.optionsTranslation,
     this.aspectRatio,
@@ -316,6 +341,7 @@ class ChewieController extends ChangeNotifier {
   }
 
   ChewieController copyWith({
+    Function(Duration position, String videoUrl)? customFullscreenHandler,
     VideoPlayerController? videoPlayerController,
     OptionsTranslation? optionsTranslation,
     double? aspectRatio,
@@ -367,6 +393,7 @@ class ChewieController extends ChangeNotifier {
     )? routePageBuilder,
   }) {
     return ChewieController(
+      customFullscreenHandler: customFullscreenHandler ?? this.customFullscreenHandler,
       draggableProgressBar: draggableProgressBar ?? this.draggableProgressBar,
       videoPlayerController:
           videoPlayerController ?? this.videoPlayerController,
@@ -424,6 +451,9 @@ class ChewieController extends ChangeNotifier {
   }
 
   static const defaultHideControlsTimer = Duration(seconds: 3);
+
+  // CUSTOM FOR Nylo
+  final Function(Duration position, String videoUrl)? customFullscreenHandler;
 
   /// If false, the options button in MaterialUI and MaterialDesktopUI
   /// won't be shown.
@@ -630,8 +660,20 @@ class ChewieController extends ChangeNotifier {
   }
 
   void enterFullScreen() {
-    _isFullScreen = true;
-    notifyListeners();
+    if (customFullscreenHandler != null) {
+      // Use custom handler instead of the default implementation
+      customFullscreenHandler!(
+        videoPlayerController.value.position,
+        videoPlayerController.dataSource,
+      );
+      // Still set the state to fullscreen for UI updates
+      _isFullScreen = true;
+      notifyListeners();
+    } else {
+      // Default implementation
+      _isFullScreen = true;
+      notifyListeners();
+    }
   }
 
   void exitFullScreen() {
